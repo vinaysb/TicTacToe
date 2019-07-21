@@ -1,2 +1,4 @@
+#Ignore idea folder
 .idea/
+# Ignore the test pygame folder
 Pygame-Intro.py
