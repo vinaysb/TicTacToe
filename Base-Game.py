@@ -3,12 +3,17 @@ import pygame as pg
 
 
 class TicTacToe:
-    def __init__(self):
-        pg.init()
-        self.board = np.zeros((3, 3))
+    def __init__(self, show=False):
+        pg.font.init()
 
+        # Global Initializations
+        self.board = np.zeros((3, 3))
+        self.show = show
         self.done = False
-        self.cell_vals = []
+        self.result = 0
+
+        # Initializing background PyGame elements
+        self.cell_values = []
         self.DISPLAY_WIDTH = 300
         self.DISPLAY_HEIGHT = 300
         self.BLACK = (0, 0, 0)
@@ -16,11 +21,16 @@ class TicTacToe:
         self.GREEN = (26, 219, 39)
         self.RED = (255, 0, 0)
         self.GREY = (105, 105, 105)
-        self.screen = pg.display.set_mode((self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
-        pg.display.set_caption('Tic-Tac-Toe')
         self.clock = pg.time.Clock()
+        self.Cross = pg.transform.scale(pg.image.load('Cross.png'), (80, 80))
+        self.Circle = pg.transform.scale(pg.image.load('Circle.png'), (80, 80))
+        self.font = pg.font.Font('Roboto-Regular.ttf', 45)
 
-        self.Clickable_Areas = {
+        # Initializing foreground PyGame elements to None
+        self.screen = None
+
+        # Global & PyGame Mappings
+        self.clickable_area_mapping = {
             1: pg.Rect(10, 10, 90, 90),
             2: pg.Rect(110, 10, 90, 90),
             3: pg.Rect(210, 10, 90, 90),
@@ -31,8 +41,6 @@ class TicTacToe:
             8: pg.Rect(110, 210, 90, 90),
             9: pg.Rect(210, 210, 90, 90),
             }
-        self.Cross = pg.transform.scale(pg.image.load('Cross.png'), (80, 80))
-        self.Circle = pg.transform.scale(pg.image.load('Circle.png'), (80, 80))
         self.pos_mapping = {
             1: (0, 0), 2: (0, 1), 3: (0, 2), 4: (1, 0), 5: (1, 1), 6: (1, 2),
             7: (2, 0), 8: (2, 1), 9: (2, 2)
@@ -43,12 +51,43 @@ class TicTacToe:
             }
         self.char_mapping = {0: ' ', 1: 'X', 2: 'O'}
         self.img_mapping = {1: self.Cross, 2: self.Circle}
-        self.font = pg.font.Font('Roboto-Regular.ttf', 45)
-        self.result = 0
+        self.cli_result_mapping = {
+            1: 'You Won!!',
+            2: 'You Lost!!',
+            3: 'It was a Draw!!'
+            }
+        self.gui_result_mapping = {
+            1: ('You Won!!', self.GREEN),
+            2: ('You Lost!!', self.RED),
+            3: ('It was a Draw!!', self.GREY)
+            }
 
-        self.controller()
+        # PyGame is called in-case the scene needs to be rendered
+        if self.show:
+            self.controller()
+        else:
+            self.cli_controller()
+
+    def cli_controller(self):
+
+        # Base Logic
+        while not np.all(self.board) and not self.done:
+            x = int(input('Enter a val from 1-9\n'))
+            self.player_turn(x)
+            if np.all(self.board) or self.done:
+                break
+            self.computer_turn()
+            print(self.board)
+        print(self.cli_result_mapping[self.result])
 
     def controller(self):
+
+        # PyGame initializations
+        pg.init()
+        self.screen = pg.display.set_mode((self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
+        pg.display.set_caption('Tic-Tac-Toe')
+
+        # Main PyGame Logic
         while not np.all(self.board) and not self.done:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -60,32 +99,34 @@ class TicTacToe:
                 pg.draw.line(self.screen, self.BLACK, [10, 200], [290, 200], 5)
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        for area in self.Clickable_Areas:
-                            if self.Clickable_Areas[area].collidepoint(pg.mouse.get_pos()):
-                                self.cell_vals.append((area, 1))
-                                self.player_turn(area)
+                        for area in self.clickable_area_mapping:
+                            if self.clickable_area_mapping[area].collidepoint(pg.mouse.get_pos()):
+                                self.cell_values.append((area, 1))
+                                ret = self.player_turn(area)
+                                if ret != 0:
+                                    self.cell_values.pop(-1)
+                                    break
                                 if np.all(self.board) or self.done:
                                     break
-                                self.cell_vals.append((self.computer_turn(), 2))
+                                self.cell_values.append((self.computer_turn(), 2))
+                                print(self.board)
                                 break
-            if not self.cell_vals == []:
-                for area, val in self.cell_vals:
-                    self.screen.blit(self.img_mapping[val], self.Clickable_Areas[area])
+            if not self.cell_values == []:
+                for area, val in self.cell_values:
+                    self.screen.blit(self.img_mapping[val], self.clickable_area_mapping[area])
             if np.all(self.board):
                 self.result = 3
             if self.result:
-                result_mapping = {1: ('You Won!!', self.GREEN),
-                                  2: ('You Lost!!', self.RED),
-                                  3: ('It was a Draw!!', self.GREY)}
                 self.screen.fill(self.WHITE)
-                textsurf = self.font.render(result_mapping[self.result][0], True, result_mapping[self.result][1])
+                textsurf = self.font.render(self.gui_result_mapping[self.result][0], True,
+                                            self.gui_result_mapping[self.result][1])
                 textrect = textsurf.get_rect()
                 textrect.center = (150, 150)
                 self.screen.blit(textsurf, textrect)
                 pg.display.update()
                 pg.time.delay(1000)
             pg.display.update()
-            self.clock.tick(60)
+            self.clock.tick(2)
         pg.quit()
 
     def _win_cond(self, board, pos):
@@ -103,10 +144,13 @@ class TicTacToe:
         return False
 
     def player_turn(self, x):
+        if self.board[self.pos_mapping[x]] != 0:
+            return 1
         self.board[self.pos_mapping[x]] = 1
         if self._win_cond(np.copy(self.board), x):
             self.done = True
             self.result = 1
+        return 0
 
     def computer_turn(self):
         empty_pos = list(zip(*np.where(self.board == 0)))
@@ -161,4 +205,4 @@ class TicTacToe:
         return x
 
 
-T = TicTacToe()
+T = TicTacToe(show=True)

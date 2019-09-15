@@ -23,3 +23,5 @@ Pygame-Intro.py
 *.exe
 *.sublime-workspace
 *.log
+/Testing.ipynb
+/.ipynb_checkpoints/
