@@ -25,3 +25,4 @@ Pygame-Intro.py
 *.log
 /Testing.ipynb
 /.ipynb_checkpoints/
+/.venv

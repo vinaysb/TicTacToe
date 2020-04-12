@@ -1,5 +1,6 @@
 import numpy as np
 import pygame as pg
+from src.gym_tic_tac.constants import CROSS, CIRCLE, FONT
 
 
 class TicTacToe:
@@ -22,9 +23,9 @@ class TicTacToe:
         self.RED = (255, 0, 0)
         self.GREY = (105, 105, 105)
         self.clock = pg.time.Clock()
-        self.Cross = pg.transform.scale(pg.image.load('Cross.png'), (80, 80))
-        self.Circle = pg.transform.scale(pg.image.load('Circle.png'), (80, 80))
-        self.font = pg.font.Font('Roboto-Regular.ttf', 45)
+        self.Cross = pg.transform.scale(pg.image.load(CROSS), (80, 80))
+        self.Circle = pg.transform.scale(pg.image.load(CIRCLE), (80, 80))
+        self.font = pg.font.Font(FONT, 45)
 
         # Initializing foreground PyGame elements to None
         self.screen = None
@@ -205,4 +206,5 @@ class TicTacToe:
         return x
 
 
-T = TicTacToe(show=True)
+if __name__ == '__main__':
+    T = TicTacToe(show=True)
